@@ -148,6 +148,30 @@ export default function TabLayout() {
   }}
 />
 
+<Tabs.Screen
+  name="history"
+  options={{
+    title: 'History',
+    tabBarIcon: ({ focused }) => (
+      <View style={[styles.tabItemBox, focused && styles.activeBox]}>
+        <Image
+          source={require('../../assets/icons/history2.png')}
+          style={[
+            styles.icon,
+            { tintColor: focused ? '#2872A1' : '#fff' },
+          ]}
+        />
+        <Text style={[
+          styles.label,
+          { color: focused ? '#2872A1' : '#fff' }
+        ]}>
+          History
+        </Text>
+      </View>
+    ),
+  }}
+/>
+
     </Tabs>
   );
 }

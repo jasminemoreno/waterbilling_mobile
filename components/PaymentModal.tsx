@@ -1,6 +1,8 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
 import {
+    Alert,
     Image,
     Modal,
     StyleSheet,
@@ -21,6 +23,22 @@ export default function PaymentModal({
   const [image, setImage] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
+  // ================= PERMISSION =================
+  useEffect(() => {
+    (async () => {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission required",
+          "Please allow photo access to upload payment proof."
+        );
+      }
+    })();
+  }, []);
+
+  // ================= RESET WHEN CLOSED =================
   useEffect(() => {
     if (!show) {
       setMessage("");
@@ -28,41 +46,71 @@ export default function PaymentModal({
     }
   }, [show]);
 
+  // ================= PICK IMAGE =================
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
       quality: 1,
     });
-
+  
     if (!result.canceled) {
-      setImage(result.assets[0]);
+      const asset = result.assets[0];
+  
+      setImage({
+        uri: asset.uri,
+        name: asset.fileName ?? "photo.jpg",
+        type: "image/jpeg",
+      });
     }
   };
 
+  // ================= SUBMIT PAYMENT =================
   const submit = async () => {
-    if (!bill || !image) return;
-
-    setLoading(true);
-
-    const formData = new FormData();
-    formData.append("amount", bill.total);
-    formData.append("message", message);
-    formData.append("screenshot", {
-      uri: image.uri,
-      name: "payment.jpg",
-      type: "image/jpeg",
-    } as any);
+    if (!bill || !image) {
+      Alert.alert("Missing", "Please select image and bill first.");
+      return;
+    }
 
     try {
-      await api.post(`/customer/paybills/${bill.id}`, formData, {
+      setLoading(true);
+
+      const token = await AsyncStorage.getItem("customerToken");
+
+      const formData = new FormData();
+
+      formData.append("amount", String(bill.total));
+      formData.append("message", message);
+      
+      // ❌ WRONG (sometimes breaks in React Native)
+      // formData.append("screenshot", {...})
+      
+      const photo = {
+        uri: image.uri,
+        name: image.name || "photo.jpg",
+        type: image.type || "image/jpeg",
+      };
+      
+      formData.append("screenshot", photo as any);
+      const res = await api.post(`/customer/paybills/${bill.id}`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
         },
       });
 
+      console.log("PAYMENT SUCCESS:", res.data);
+
+      Alert.alert("Success", "Payment submitted successfully!");
+
       onSubmitted();
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      console.log("PAYMENT ERROR:", err.response?.data || err);
+
+      Alert.alert(
+        "Payment Failed",
+        JSON.stringify(err.response?.data || "Unknown error")
+      );
     } finally {
       setLoading(false);
     }
@@ -74,7 +122,7 @@ export default function PaymentModal({
         <View style={styles.modal}>
           <Text style={styles.title}>Pay Bill</Text>
 
-          <Text>Amount: ₱{bill?.total}</Text>
+          <Text style={styles.amount}>Amount: ₱{bill?.total}</Text>
 
           <TextInput
             placeholder="Message (optional)"
@@ -83,26 +131,34 @@ export default function PaymentModal({
             style={styles.input}
           />
 
+          {/* PICK IMAGE */}
           <TouchableOpacity style={styles.upload} onPress={pickImage}>
-            <Text style={{ color: "#fff" }}>Upload Screenshot</Text>
+            <Text style={{ color: "#fff", fontWeight: "600" }}>
+              Upload Screenshot
+            </Text>
           </TouchableOpacity>
 
+          {/* PREVIEW */}
           {image && (
             <Image source={{ uri: image.uri }} style={styles.preview} />
           )}
 
+          {/* SUBMIT */}
           <TouchableOpacity
             style={styles.submit}
             onPress={submit}
             disabled={loading}
           >
-            <Text style={{ color: "#fff" }}>
+            <Text style={{ color: "#fff", fontWeight: "700" }}>
               {loading ? "Submitting..." : "Send Payment"}
             </Text>
           </TouchableOpacity>
 
+          {/* CLOSE */}
           <TouchableOpacity onPress={onClose}>
-            <Text style={{ marginTop: 10 }}>Close</Text>
+            <Text style={{ marginTop: 12, textAlign: "center" }}>
+              Close
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -129,6 +185,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 10,
+    textAlign: "center",
+  },
+
+  amount: {
+    marginBottom: 10,
+    fontWeight: "600",
   },
 
   input: {

@@ -8,6 +8,7 @@ import BillCard from "../../components/BillCard";
 import PaymentModal from "../../components/PaymentModal";
 import SuccessPopup from "../../components/SuccessPopup";
 
+import dayjs from "dayjs";
 import { Bill } from "../../components/types/Bill";
 
 export default function PayBill() {
@@ -65,7 +66,13 @@ export default function PayBill() {
         scrollEnabled={false}
         renderItem={({ item }) => (
           <BillCard
-            item={item}
+            item={{
+              id: item.id,
+              month: dayjs(item.billing_date).format('MMMM YYYY'),
+              total: Number(item.total),
+              status: item.status,
+              billing_date: item.billing_date,
+            }}
             showPayButton={true}
             onPay={openModal}
           />
