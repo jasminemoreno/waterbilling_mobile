@@ -9,26 +9,28 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         header: () => (
-          <SafeAreaView style={styles.header}>
-        
+          <SafeAreaView style={styles.header} edges={['top']}>
+
             {/* LEFT SIDE */}
             <View style={styles.headerLeft}>
               <Image
                 source={require('../../assets/img/alipao.png')}
                 style={styles.logo}
               />
-        
-              <Text style={styles.headerText}>
+
+              <Text style={styles.headerText} numberOfLines={1}>
                 Alipao Water Billing System
               </Text>
             </View>
-        
+
             {/* RIGHT SIDE */}
-            <Image
-              source={require('../../assets/icons/profile.png')}
-              style={styles.profile}
-            />
-        
+            <View style={styles.headerRight}>
+              <Image
+                source={require('../../assets/icons/profile.png')}
+                style={styles.profile}
+              />
+            </View>
+
           </SafeAreaView>
         ),
 
@@ -52,45 +54,106 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ focused, color }) => (
+          tabBarIcon: ({ focused }) => (
             <View style={[styles.tabItemBox, focused && styles.activeBox]}>
               <Image
                 source={require('../../assets/icons/home1.png')}
-                style={[styles.icon, { tintColor: focused ? '#2872A1' : '#fff' }]}
+                style={[
+                  styles.icon,
+                  { tintColor: focused ? '#2872A1' : '#fff' },
+                ]}
               />
-              <Text style={[styles.label, { color: focused ? '#2872A1' : '#fff' }]}>
+              <Text style={[
+                styles.label,
+                { color: focused ? '#2872A1' : '#fff' }
+              ]}>
                 Home
               </Text>
             </View>
           ),
         }}
       />
-
       {/* MY BILLS */}
+<Tabs.Screen
+  name="mybills"
+  options={{
+    title: 'My Bills',
+    tabBarIcon: ({ focused }) => (
+      <View style={[styles.tabItemBox, focused && styles.activeBox]}>
+        <Image
+          source={require('../../assets/icons/mybill2.png')}
+          style={[
+            styles.icon,
+            { tintColor: focused ? '#2872A1' : '#fff' },
+          ]}
+        />
+        <Text style={[
+          styles.label,
+          { color: focused ? '#2872A1' : '#fff' }
+        ]}>
+          My Bills
+        </Text>
+      </View>
+    ),
+  }}
+/>
+
+
+      {/* PAY BILLS */}
       <Tabs.Screen
-        name="mybills"
+        name="paybills"
         options={{
-          title: 'My Bills',
-          tabBarIcon: ({ focused, color }) => (
+          title: 'Pay Bills',
+          tabBarIcon: ({ focused }) => (
             <View style={[styles.tabItemBox, focused && styles.activeBox]}>
               <Image
-                source={require('../../assets/icons/mybill2.png')}
-                style={[styles.icon, { tintColor: focused ? '#2872A1' : '#fff' }]}
+                source={require('../../assets/icons/paybill1.png')}
+                style={[
+                  styles.icon,
+                  { tintColor: focused ? '#2872A1' : '#fff' },
+                ]}
               />
-              <Text style={[styles.label, { color: focused ? '#2872A1' : '#fff' }]}>
-                My Bills
+              <Text style={[
+                styles.label,
+                { color: focused ? '#2872A1' : '#fff' }
+              ]}>
+                Pay Bills
               </Text>
             </View>
           ),
         }}
       />
 
+<Tabs.Screen
+  name="notifications"
+  options={{
+    title: 'Notifications',
+    tabBarIcon: ({ focused }) => (
+      <View style={[styles.tabItemBox, focused && styles.activeBox]}>
+        <Image
+          source={require('../../assets/icons/notification2.png')}
+          style={[
+            styles.icon,
+            { tintColor: focused ? '#2872A1' : '#fff' },
+          ]}
+        />
+        <Text style={[
+          styles.label,
+          { color: focused ? '#2872A1' : '#fff' }
+        ]}>
+          Notifications
+        </Text>
+      </View>
+    ),
+  }}
+/>
+
     </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
-  /* HEADER */
+  /* HEADER (FIXED STABILITY) */
   header: {
     backgroundColor: '#2872A1',
     height: 90,
@@ -99,82 +162,73 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  
+
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  
+
+  headerRight: {
+    width: 40,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+
+  logo: {
+    width: 50,
+    height: 50,
+    resizeMode: 'contain',
+    marginRight: 10,
+  },
+
   headerText: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '700',
-    marginLeft: 1,
     flexShrink: 1,
   },
 
-  logo: {
-    width: 60,
-    height: 60,
-    resizeMode: 'contain',
-    marginBottom: 15,
-    marginLeft: -10,
-  },
-
-  /* ✅ ADDED PROFILE STYLE */
   profile: {
     width: 35,
     height: 35,
     resizeMode: 'contain',
-    position: 'absolute',
-    right: 15,
-    top: 45,
+  },
+
+  /* TAB BAR */
+  tabBar: 
+  { position: 'absolute', 
+    left: 15, right: 15, 
+    height: 55, 
+    backgroundColor: '#2872A1', 
+    borderRadius: 18, 
+    borderTopWidth: 0, 
+    elevation: 10, 
+    paddingBottom: 6, 
+    paddingTop: 6, }, 
+  
+  tabItem: 
+  { paddingVertical: 4, }, 
+
+  icon: 
+  { marginTop: -16, 
+    width: 22, 
+    height: 22, 
+    resizeMode: 'contain', 
+    marginBottom: 2, }, 
     
-  },
+  label: 
+  { fontSize: 9, 
+    fontWeight: '700', 
+    marginTop: -10, },
 
-  /* FLOATING TAB */
-  tabBar: {
-    position: 'absolute',
-    left: 15,
-    right: 15,
-    height: 55,
-    backgroundColor: '#2872A1',
-    borderRadius: 18,
-    borderTopWidth: 0,
-    elevation: 10,
-    paddingBottom: 6,
-    paddingTop: 6,
-  },
-
-  tabItem: {
-    paddingVertical: 4,
-  },
-
-  icon: {
-    marginTop: -16,
-    width: 22,
-    height: 22,
-    resizeMode: 'contain',
-    marginBottom: 2,
-  },
-
-  label: {
-    fontSize: 11,
-    fontWeight: '700',
-    marginTop: -10,
-  },
-
-  tabItemBox: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 23,
-    paddingHorizontal: 16,
+  tabItemBox: 
+  { alignItems: 'center', 
+    justifyContent: 'center', 
+    paddingVertical: 23, 
+    paddingHorizontal: 16, 
     borderRadius: 10,
-    marginBottom: 3,
-  },
-
-  activeBox: {
-    backgroundColor: '#fff',
-  },
-});
+    marginBottom: 3, }, 
+    
+  activeBox: 
+  { backgroundColor: '#fff', }, });

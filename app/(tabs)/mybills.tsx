@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import PayBillModal from '../../components/PayBillModal';
 import api from '../../config/api';
 
 /* ================= TYPES ================= */
@@ -126,17 +125,7 @@ export default function MyBills() {
         )}
       />
 
-      {/* MODAL */}
-      {showModal && (
-        <PayBillModal
-          bill={selectedBill}
-          onClose={() => setShowModal(false)}
-          onSuccess={() => {
-            setShowModal(false);
-            loadBills();
-          }}
-        />
-      )}
+      
 
     </View>
   );
