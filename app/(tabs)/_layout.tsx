@@ -10,18 +10,25 @@ export default function TabLayout() {
       screenOptions={{
         header: () => (
           <SafeAreaView style={styles.header}>
-            
-            <Image
-              source={require('../../assets/img/alipao.png')}
-              style={styles.logo}
-            />
-
-            {/* ✅ PROFILE ADDED ONLY */}
+        
+            {/* LEFT SIDE */}
+            <View style={styles.headerLeft}>
+              <Image
+                source={require('../../assets/img/alipao.png')}
+                style={styles.logo}
+              />
+        
+              <Text style={styles.headerText}>
+                Alipao Water Billing System
+              </Text>
+            </View>
+        
+            {/* RIGHT SIDE */}
             <Image
               source={require('../../assets/icons/profile.png')}
               style={styles.profile}
             />
-
+        
           </SafeAreaView>
         ),
 
@@ -87,8 +94,24 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#2872A1',
     height: 90,
-    justifyContent: 'center',
     paddingHorizontal: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  
+  headerText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+    marginLeft: 1,
+    flexShrink: 1,
   },
 
   logo: {
@@ -106,7 +129,8 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     position: 'absolute',
     right: 15,
-    top: 50,
+    top: 45,
+    
   },
 
   /* FLOATING TAB */
