@@ -8,7 +8,7 @@ type Props = {
   onPay?: (item: Bill) => void;
 };
 
-// ✅ format date to words (Jan 23, 2026)
+// ✅ format date to words
 const formatDate = (date?: string) => {
   if (!date) return "-";
 
@@ -35,7 +35,6 @@ export default function BillCard({
 }: Props) {
   return (
     <View style={styles.card}>
-
       <Text style={styles.title}>
         Bill ID: {item?.id ?? "-"}
       </Text>
@@ -48,10 +47,10 @@ export default function BillCard({
         Consumption: {item?.consumption ?? 0} m³
       </Text>
 
-      {/* ✅ FIX: use total (NOT amount / bill_total) */}
       <Text style={styles.text}>
         Total: ₱{formatMoney(item?.total)}
       </Text>
+
       <Text style={styles.text}>
         Billing Date: {formatDate(item?.billing_date)}
       </Text>
@@ -67,21 +66,24 @@ export default function BillCard({
             ? styles.pending
             : item?.status === "Paid"
             ? styles.paid
+            : item?.status === "Verified"
+            ? styles.verified
             : styles.unpaid,
         ]}
       >
         Status: {item?.status ?? "-"}
       </Text>
 
-      {showPayButton && item?.status !== "Paid" && (
-        <TouchableOpacity
-          style={styles.payBtn}
-          onPress={() => onPay?.(item)}
-        >
-          <Text style={styles.payBtnText}>Pay</Text>
-        </TouchableOpacity>
-      )}
-
+      {showPayButton &&
+        item?.status !== "Paid" &&
+        item?.status !== "Verified" && (
+          <TouchableOpacity
+            style={styles.payBtn}
+            onPress={() => onPay?.(item)}
+          >
+            <Text style={styles.payBtnText}>Pay</Text>
+          </TouchableOpacity>
+        )}
     </View>
   );
 }
@@ -113,9 +115,21 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  unpaid: { color: "#d9534f" },
-  pending: { color: "#f0ad4e" },
-  paid: { color: "#28a745" },
+  unpaid: {
+    color: "#d9534f",
+  },
+
+  pending: {
+    color: "#f0ad4e",
+  },
+
+  paid: {
+    color: "#28a745",
+  },
+
+  verified: {
+    color: "#2872A1",
+  },
 
   payBtn: {
     backgroundColor: "#2872A1",

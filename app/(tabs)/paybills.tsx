@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useEffect, useState } from "react";
 import { FlatList, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import api from "../../config/api";
@@ -18,6 +19,7 @@ export default function PayBill() {
   const [showModal, setShowModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // ================= FETCH =================
   const fetchBills = async () => {
     try {
       const token = await AsyncStorage.getItem("customerToken");
@@ -36,11 +38,25 @@ export default function PayBill() {
     }
   };
 
+  // ================= FIRST LOAD =================
   useEffect(() => {
     fetchBills();
   }, []);
 
-  // ✅ FIXED TYPE ISSUE HERE
+  // ================= POLLING =================
+  useFocusEffect(
+    useCallback(() => {
+      fetchBills(); // refresh immediately when page opens
+
+      const interval = setInterval(() => {
+        fetchBills(); // auto refresh every 10 sec
+      }, 10000);
+
+      return () => clearInterval(interval);
+    }, [])
+  );
+
+  // ================= MODAL =================
   const openModal = (bill: Bill) => {
     setSelectedBill(bill);
     setShowModal(true);
@@ -68,7 +84,7 @@ export default function PayBill() {
           <BillCard
             item={{
               id: item.id,
-              month: dayjs(item.billing_date).format('MMMM YYYY'),
+              month: dayjs(item.billing_date).format("MMMM YYYY"),
               total: Number(item.total),
               status: item.status,
               billing_date: item.billing_date,
@@ -82,8 +98,12 @@ export default function PayBill() {
       <View style={styles.detailsCard}>
         <Text style={styles.detailsTitle}>Payment Details</Text>
 
-        <Text><Text style={styles.bold}>GCash:</Text> 09XXXXXXXXX</Text>
-        <Text><Text style={styles.bold}>Name:</Text> Telma</Text>
+        <Text>
+          <Text style={styles.bold}>GCash:</Text> 09XXXXXXXXX
+        </Text>
+        <Text>
+          <Text style={styles.bold}>Name:</Text> Telma
+        </Text>
         <Text>Upload screenshot during payment.</Text>
       </View>
 

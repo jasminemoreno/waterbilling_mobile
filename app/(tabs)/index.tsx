@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -7,6 +7,8 @@ import {
   Text,
   View,
 } from "react-native";
+
+import { useFocusEffect } from "@react-navigation/native";
 
 import api from "../../config/api";
 
@@ -26,6 +28,7 @@ export default function Home() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // ================= FETCH DASHBOARD =================
   const fetchDashboard = async () => {
     try {
       const token = await AsyncStorage.getItem("customerToken");
@@ -44,10 +47,25 @@ export default function Home() {
     }
   };
 
+  // ================= FIRST LOAD =================
   useEffect(() => {
     fetchDashboard();
   }, []);
 
+  // ================= POLLING =================
+  useFocusEffect(
+    useCallback(() => {
+      fetchDashboard(); // refresh when page opens
+
+      const interval = setInterval(() => {
+        fetchDashboard(); // auto refresh every 10 sec
+      }, 10000);
+
+      return () => clearInterval(interval);
+    }, [])
+  );
+
+  // ================= LOADING =================
   if (loading) {
     return (
       <View style={styles.loading}>
@@ -57,13 +75,14 @@ export default function Home() {
     );
   }
 
+  // ================= UI =================
   return (
     <ScrollView
       style={styles.page}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { flexGrow: 1 }]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
-      bounces={true} // 🔥 important for smooth feel
+      bounces={true}
     >
       <DashboardCards
         currentBill={data?.currentBill}
@@ -85,6 +104,7 @@ export default function Home() {
   );
 }
 
+// ================= STYLES =================
 const styles = StyleSheet.create({
   page: {
     flex: 1,
@@ -94,10 +114,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 12,
     paddingTop: 10,
-
-    // 🔥 IMPORTANT FOR TAB BAR + SCROLL SMOOTHNESS
     paddingBottom: 140,
-
     gap: 15,
   },
 

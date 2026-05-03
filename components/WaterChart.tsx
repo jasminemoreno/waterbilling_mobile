@@ -1,71 +1,119 @@
-import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { BarChart } from 'react-native-chart-kit';
+import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { LineChart } from "react-native-chart-kit";
 
 export default function WaterUsageChart({ chartLabels, chartData }: any) {
   const { width } = useWindowDimensions();
 
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>Water Usage</Text>
-      <Text style={styles.subtitle}>Monthly consumption overview</Text>
+      {/* HEADER */}
+      <View style={styles.header}>
+        <Text style={styles.title}>Water Usage</Text>
+        <Text style={styles.subtitle}>Monthly consumption overview</Text>
+      </View>
 
+      {/* CHART */}
       <View style={styles.chartWrap}>
-        <BarChart
+        <LineChart
           data={{
             labels: chartLabels || [],
-            datasets: [{ data: chartData || [] }],
+            datasets: [
+              {
+                data: chartData || [],
+                strokeWidth: 3,
+              },
+            ],
           }}
-          width={width - 40}
-          height={220}
+          width={width - 45}
+          height={250}
           fromZero
-          showValuesOnTopOfBars
-
-          // ✅ REQUIRED BY TYPESCRIPT
+          withInnerLines={false}
+          withOuterLines={false}
+          withShadow={false}
           yAxisLabel=""
           yAxisSuffix=" m³"
 
           chartConfig={{
-            backgroundGradientFrom: '#fff',
-            backgroundGradientTo: '#fff',
+            backgroundGradientFrom: "#ffffff",
+            backgroundGradientTo: "#ffffff",
+
             decimalPlaces: 0,
-            color: () => '#2872A1',
-            labelColor: () => '#555',
-            barPercentage: 0.6,
+
+            color: (opacity = 1) => `rgba(40,114,161,${opacity})`,
+            labelColor: (opacity = 1) => `rgba(120,120,120,${opacity})`,
+
+            propsForDots: {
+              r: "5",
+              strokeWidth: "2",
+              stroke: "#ffffff",
+              fill: "#2872A1",
+            },
+
             propsForBackgroundLines: {
-              stroke: '#eee',
+              stroke: "#EEF2F6",
+              strokeWidth: 1,
+            },
+
+            propsForLabels: {
+              fontSize: 10,
             },
           }}
 
-          style={{
-            borderRadius: 12,
-          }}
+          bezier
+          style={styles.chart}
         />
       </View>
+
+      {/* FOOTER */}
+      <Text style={styles.footer}>
+        Tip: Tap and compare monthly usage trends
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 15,
-    elevation: 3,
+    backgroundColor: "#fff",
+    borderRadius: 18,
+    padding: 16,
+
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+  },
+
+  header: {
+    marginBottom: 10,
   },
 
   title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#2872A1',
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#2872A1",
   },
 
   subtitle: {
     fontSize: 12,
-    color: '#777',
-    marginBottom: 10,
+    color: "#777",
+    marginTop: 2,
   },
 
   chartWrap: {
-    alignItems: 'center',
+    alignItems: "center",
+    marginLeft: -5,
+  },
+
+  chart: {
+    borderRadius: 16,
+  },
+
+  footer: {
+    marginTop: 8,
+    fontSize: 11,
+    textAlign: "center",
+    color: "#9CA3AF",
   },
 });

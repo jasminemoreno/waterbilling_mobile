@@ -1,7 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
+
 import api from "../../config/api";
 
 import BillCard from "../../components/BillCard";
@@ -17,7 +24,7 @@ type Payment = {
 export default function PaymentHistory() {
   const [payments, setPayments] = useState<Payment[]>([]);
 
-  // FETCH PAYMENT HISTORY
+  // ================= FETCH =================
   const fetchPayments = async () => {
     try {
       const token = await AsyncStorage.getItem("customerToken");
@@ -38,11 +45,25 @@ export default function PaymentHistory() {
     }
   };
 
+  // ================= FIRST LOAD =================
   useEffect(() => {
     fetchPayments();
   }, []);
 
-  // TRANSFORM DATA FOR CARD
+  // ================= POLLING =================
+  useFocusEffect(
+    useCallback(() => {
+      fetchPayments(); // refresh immediately
+
+      const interval = setInterval(() => {
+        fetchPayments(); // auto refresh every 10 sec
+      }, 10000);
+
+      return () => clearInterval(interval);
+    }, [])
+  );
+
+  // ================= RENDER ITEM =================
   const renderItem = ({ item }: { item: Payment }) => {
     const billLike = {
       id: item.bill_id,
@@ -60,21 +81,25 @@ export default function PaymentHistory() {
     );
   };
 
+  // ================= UI =================
   return (
     <View style={styles.container}>
-      {/* TITLE */}
       <Text style={styles.title}>Payment History</Text>
 
-      {/* LIST */}
       <FlatList
         data={payments}
         keyExtractor={(item, index) =>
           item.bill_id?.toString() || index.toString()
         }
         renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{
+          paddingBottom: 120,
+        }}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <Text style={styles.empty}>No payment history found.</Text>
+          <Text style={styles.empty}>
+            No payment history found.
+          </Text>
         }
       />
     </View>

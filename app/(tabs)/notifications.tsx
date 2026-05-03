@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
+
+import { useFocusEffect } from "@react-navigation/native";
 
 import api from "../../config/api";
 
@@ -27,7 +29,7 @@ export default function NotificationsScreen() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // FETCH
+  // ================= FETCH =================
   const fetchNotifications = async () => {
     try {
       const res = await api.get("/customer/notifications");
@@ -39,16 +41,30 @@ export default function NotificationsScreen() {
     }
   };
 
+  // ================= FIRST LOAD =================
   useEffect(() => {
     fetchNotifications();
   }, []);
 
-  // DELETE
+  // ================= POLLING =================
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotifications(); // refresh immediately
+
+      const interval = setInterval(() => {
+        fetchNotifications(); // auto refresh every 10 sec
+      }, 10000);
+
+      return () => clearInterval(interval);
+    }, [])
+  );
+
+  // ================= DELETE =================
   const removeNotification = (id: number) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
-  // READ
+  // ================= READ =================
   const markAsRead = async (id: number) => {
     try {
       await api.patch(`/customer/notifications/${id}/read`);
@@ -63,13 +79,13 @@ export default function NotificationsScreen() {
     }
   };
 
-  // OPEN MODAL
+  // ================= OPEN MODAL =================
   const openConfirm = (id: number) => {
     setSelectedId(id);
     setShowConfirm(true);
   };
 
-  // CONFIRM DELETE
+  // ================= CONFIRM DELETE =================
   const confirmDelete = async () => {
     if (!selectedId) return;
 
@@ -84,6 +100,7 @@ export default function NotificationsScreen() {
     }
   };
 
+  // ================= LOADING =================
   if (loading) {
     return (
       <View style={styles.loading}>
@@ -92,6 +109,7 @@ export default function NotificationsScreen() {
     );
   }
 
+  // ================= UI =================
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Notifications</Text>
@@ -109,9 +127,10 @@ export default function NotificationsScreen() {
         ListEmptyComponent={
           <Text style={styles.empty}>No notifications yet.</Text>
         }
+        contentContainerStyle={{ paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
       />
 
-      {/* CONFIRM MODAL */}
       <ConfirmModal
         show={showConfirm}
         message="Are you sure you want to delete this notification?"
