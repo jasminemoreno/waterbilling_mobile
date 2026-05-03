@@ -1,12 +1,18 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-import api from '../../config/api';
+import api from "../../config/api";
 
-import DashboardCards from '../../components/DashboardCards';
-import NotificationsCard from '../../components/NotificationsCard';
-import WaterUsageChart from '../../components/WaterChart';
+import DashboardCards from "../../components/DashboardCards";
+import NotificationsCard from "../../components/NotificationsCard";
+import WaterUsageChart from "../../components/WaterChart";
 
 type DashboardData = {
   currentBill: any;
@@ -22,9 +28,9 @@ export default function Home() {
 
   const fetchDashboard = async () => {
     try {
-      const token = await AsyncStorage.getItem('customerToken');
+      const token = await AsyncStorage.getItem("customerToken");
 
-      const res = await api.get('/customer/dashboardData', {
+      const res = await api.get("/customer/dashboardData", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -32,7 +38,7 @@ export default function Home() {
 
       setData(res.data);
     } catch (error) {
-      console.log('Dashboard error:', error);
+      console.log("Dashboard error:", error);
     } finally {
       setLoading(false);
     }
@@ -42,31 +48,39 @@ export default function Home() {
     fetchDashboard();
   }, []);
 
+  if (loading) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color="#2872A1" />
+        <Text style={{ marginTop: 10 }}>Loading dashboard...</Text>
+      </View>
+    );
+  }
+
   return (
-    <ScrollView style={styles.page}>
-  
-      {/* 1. DASHBOARD CARDS (3 cards now) */}
+    <ScrollView
+      style={styles.page}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      bounces={true} // 🔥 important for smooth feel
+    >
       <DashboardCards
         currentBill={data?.currentBill}
         lastPayment={data?.lastPayment}
         chartData={data?.chartData}
       />
 
-      {/* 2. WATER USAGE CHART */}
       <WaterUsageChart
         chartLabels={data?.chartLabels}
         chartData={data?.chartData}
         chartColors={data?.chartColors}
       />
-  
-      {/* 3. QUICK NOTIFICATIONS */}
+
       <NotificationsCard
         currentBill={data?.currentBill}
         lastPayment={data?.lastPayment}
       />
-  
-  
-  
     </ScrollView>
   );
 }
@@ -74,24 +88,22 @@ export default function Home() {
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    backgroundColor: '#CBDDE9',
-    paddingHorizontal: 12,   // 🔥 smaller side padding
+    backgroundColor: "#CBDDE9",
+  },
+
+  content: {
+    paddingHorizontal: 12,
     paddingTop: 10,
+
+    // 🔥 IMPORTANT FOR TAB BAR + SCROLL SMOOTHNESS
+    paddingBottom: 140,
+
+    gap: 15,
   },
 
-
-  gridRow: {
-    flexDirection: 'row',
-    gap: 20,
-    marginTop: 20,
-    alignItems: 'flex-start',
-  },
-
-  leftColumn: {
-    flex: 2, // Vue: 2fr
-  },
-
-  rightColumn: {
-    flex: 1, // Vue: 1fr
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
