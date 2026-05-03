@@ -1,15 +1,17 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
+
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Image,
-    Modal,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import api from "../config/api";
 
@@ -49,17 +51,26 @@ export default function PaymentModal({
   // ================= PICK IMAGE =================
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: false,
+      mediaTypes: ['images'],
       quality: 1,
     });
   
     if (!result.canceled) {
       const asset = result.assets[0];
   
+      // Convert to REAL JPEG
+      const converted = await ImageManipulator.manipulateAsync(
+        asset.uri,
+        [],
+        {
+          compress: 0.8,
+          format: ImageManipulator.SaveFormat.JPEG,
+        }
+      );
+  
       setImage({
-        uri: asset.uri,
-        name: asset.fileName ?? "photo.jpg",
+        uri: converted.uri,
+        name: `payment_${Date.now()}.jpg`,
         type: "image/jpeg",
       });
     }
@@ -92,16 +103,17 @@ export default function PaymentModal({
       };
       
       formData.append("screenshot", photo as any);
-      const res = await api.post(`/customer/paybills/${bill.id}`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-      });
+      const res = await api.post(
+        `/customer/paybills/${bill.id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       console.log("PAYMENT SUCCESS:", res.data);
-
-      Alert.alert("Success", "Payment submitted successfully!");
 
       onSubmitted();
     } catch (err: any) {

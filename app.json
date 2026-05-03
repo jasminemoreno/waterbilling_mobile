@@ -8,31 +8,27 @@
     "scheme": "waterbillingmobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-
     "ios": {
       "supportsTablet": true
     },
-
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#2872A1"
       },
       "android": {
-  "edgeToEdgeEnabled": true
-},
+        "edgeToEdgeEnabled": true
+      },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.waterbillingmobile"
     },
-
     "web": {
       "output": "static"
     },
-
     "plugins": [
       "expo-router",
       "expo-web-browser"
     ],
-
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
