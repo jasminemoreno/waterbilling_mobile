@@ -1,181 +1,269 @@
-import { Tabs } from 'expo-router';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+
+  const [showMenu, setShowMenu] = useState(false);
+
+  const handleLogout = () => {
+    setShowMenu(false);
+    console.log("Logout clicked");
+
+    // TODO: clear token if needed
+    // AsyncStorage.removeItem("customerToken");
+
+    router.replace('/login');
+  };
+
+  const goProfile = () => {
+    setShowMenu(false);
+    router.push('/profile'); // ✅ GO TO PROFILE PAGE
+  };
+
+  const goAbout = () => {
+    setShowMenu(false);
+    router.push('/about'); // optional if you have page
+  };
+
+  const goSettings = () => {
+    setShowMenu(false);
+    router.push('/settings'); // optional if you have page
+  };
 
   return (
-    <Tabs
-      screenOptions={{
-        header: () => (
-          <SafeAreaView style={styles.header} edges={['top']}>
+    <TouchableWithoutFeedback onPress={() => setShowMenu(false)}>
+      <View style={{ flex: 1 }}>
 
-            {/* LEFT SIDE */}
-            <View style={styles.headerLeft}>
-              <Image
-                source={require('../../assets/img/alipao.png')}
-                style={styles.logo}
-              />
+        <Tabs
+          screenOptions={{
+            header: () => (
+              <SafeAreaView style={styles.header} edges={['top']}>
 
-              <Text style={styles.headerText} numberOfLines={1}>
-                Alipao Water Billing System
-              </Text>
-            </View>
+                {/* LEFT */}
+                <View style={styles.headerLeft}>
+                  <Image
+                    source={require('../../assets/img/alipao.png')}
+                    style={styles.logo}
+                  />
 
-            {/* RIGHT SIDE */}
-            <View style={styles.headerRight}>
+                  <Text style={styles.headerText} numberOfLines={1}>
+                    Alipao Water Billing System
+                  </Text>
+                </View>
+
+                {/* RIGHT PROFILE ICON */}
+                <View style={styles.headerRight}>
+                  <TouchableOpacity onPress={() => setShowMenu(!showMenu)}>
+                    <Image
+                      source={require('../../assets/icons/profile.png')}
+                      style={styles.profile}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+              </SafeAreaView>
+            ),
+
+            tabBarShowLabel: true,
+            tabBarStyle: [
+              styles.tabBar,
+              { bottom: insets.bottom + 10 },
+            ],
+
+            tabBarActiveTintColor: '#2872A1',
+            tabBarInactiveTintColor: '#ffffff',
+            tabBarLabelStyle: styles.label,
+            tabBarItemStyle: styles.tabItem,
+          }}
+        >
+
+          {/* HOME */}
+          <Tabs.Screen
+            name="index"
+            options={{
+              title: 'Home',
+              tabBarIcon: ({ focused }) => (
+                <View style={[styles.tabItemBox, focused && styles.activeBox]}>
+                  <Image
+                    source={require('../../assets/icons/home1.png')}
+                    style={[
+                      styles.icon,
+                      { tintColor: focused ? '#2872A1' : '#fff' },
+                    ]}
+                  />
+                  <Text style={[
+                    styles.label,
+                    { color: focused ? '#2872A1' : '#fff' }
+                  ]}>
+                    Home
+                  </Text>
+                </View>
+              ),
+            }}
+          />
+
+          {/* MY BILLS */}
+          <Tabs.Screen
+            name="mybills"
+            options={{
+              title: 'My Bills',
+              tabBarIcon: ({ focused }) => (
+                <View style={[styles.tabItemBox, focused && styles.activeBox]}>
+                  <Image
+                    source={require('../../assets/icons/mybill2.png')}
+                    style={[
+                      styles.icon,
+                      { tintColor: focused ? '#2872A1' : '#fff' },
+                    ]}
+                  />
+                  <Text style={[
+                    styles.label,
+                    { color: focused ? '#2872A1' : '#fff' }
+                  ]}>
+                    My Bills
+                  </Text>
+                </View>
+              ),
+            }}
+          />
+
+          {/* PAY BILLS */}
+          <Tabs.Screen
+            name="paybills"
+            options={{
+              title: 'Pay Bills',
+              tabBarIcon: ({ focused }) => (
+                <View style={[styles.tabItemBox, focused && styles.activeBox]}>
+                  <Image
+                    source={require('../../assets/icons/paybill1.png')}
+                    style={[
+                      styles.icon,
+                      { tintColor: focused ? '#2872A1' : '#fff' },
+                    ]}
+                  />
+                  <Text style={[
+                    styles.label,
+                    { color: focused ? '#2872A1' : '#fff' }
+                  ]}>
+                    Pay Bills
+                  </Text>
+                </View>
+              ),
+            }}
+          />
+
+          {/* NOTIFICATIONS */}
+          <Tabs.Screen
+            name="notifications"
+            options={{
+              title: 'Notifications',
+              tabBarIcon: ({ focused }) => (
+                <View style={[styles.tabItemBox, focused && styles.activeBox]}>
+                  <Image
+                    source={require('../../assets/icons/notification2.png')}
+                    style={[
+                      styles.icon,
+                      { tintColor: focused ? '#2872A1' : '#fff' },
+                    ]}
+                  />
+                  <Text style={[
+                    styles.label,
+                    { color: focused ? '#2872A1' : '#fff' }
+                  ]}>
+                    Notifications
+                  </Text>
+                </View>
+              ),
+            }}
+          />
+
+          {/* HISTORY */}
+          <Tabs.Screen
+            name="history"
+            options={{
+              title: 'History',
+              tabBarIcon: ({ focused }) => (
+                <View style={[styles.tabItemBox, focused && styles.activeBox]}>
+                  <Image
+                    source={require('../../assets/icons/history2.png')}
+                    style={[
+                      styles.icon,
+                      { tintColor: focused ? '#2872A1' : '#fff' },
+                    ]}
+                  />
+                  <Text style={[
+                    styles.label,
+                    { color: focused ? '#2872A1' : '#fff' }
+                  ]}>
+                    History
+                  </Text>
+                </View>
+              ),
+            }}
+          />
+
+        </Tabs>
+
+        {/* ================= DROPDOWN MENU ================= */}
+        {showMenu && (
+          <View style={styles.dropdown}>
+
+            {/* PROFILE */}
+            <TouchableOpacity style={styles.menuItem} onPress={goProfile}>
               <Image
                 source={require('../../assets/icons/profile.png')}
-                style={styles.profile}
+                style={styles.menuIcon}
               />
-            </View>
+              <Text style={styles.menuText}>Profile</Text>
+            </TouchableOpacity>
 
-          </SafeAreaView>
-        ),
-
-        tabBarShowLabel: true,
-
-        tabBarStyle: [
-          styles.tabBar,
-          { bottom: insets.bottom + 10 },
-        ],
-
-        tabBarActiveTintColor: '#2872A1',
-        tabBarInactiveTintColor: '#ffffff',
-
-        tabBarLabelStyle: styles.label,
-        tabBarItemStyle: styles.tabItem,
-      }}
-    >
-
-      {/* HOME */}
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ focused }) => (
-            <View style={[styles.tabItemBox, focused && styles.activeBox]}>
+            {/* ABOUT */}
+            <TouchableOpacity style={styles.menuItem} onPress={goAbout}>
               <Image
-                source={require('../../assets/icons/home1.png')}
-                style={[
-                  styles.icon,
-                  { tintColor: focused ? '#2872A1' : '#fff' },
-                ]}
+                source={require('../../assets/icons/info.png')}
+                style={styles.menuIcon}
               />
-              <Text style={[
-                styles.label,
-                { color: focused ? '#2872A1' : '#fff' }
-              ]}>
-                Home
-              </Text>
-            </View>
-          ),
-        }}
-      />
-      {/* MY BILLS */}
-<Tabs.Screen
-  name="mybills"
-  options={{
-    title: 'My Bills',
-    tabBarIcon: ({ focused }) => (
-      <View style={[styles.tabItemBox, focused && styles.activeBox]}>
-        <Image
-          source={require('../../assets/icons/mybill2.png')}
-          style={[
-            styles.icon,
-            { tintColor: focused ? '#2872A1' : '#fff' },
-          ]}
-        />
-        <Text style={[
-          styles.label,
-          { color: focused ? '#2872A1' : '#fff' }
-        ]}>
-          My Bills
-        </Text>
-      </View>
-    ),
-  }}
-/>
+              <Text style={styles.menuText}>About</Text>
+            </TouchableOpacity>
 
-
-      {/* PAY BILLS */}
-      <Tabs.Screen
-        name="paybills"
-        options={{
-          title: 'Pay Bills',
-          tabBarIcon: ({ focused }) => (
-            <View style={[styles.tabItemBox, focused && styles.activeBox]}>
+            {/* SETTINGS */}
+            <TouchableOpacity style={styles.menuItem} onPress={goSettings}>
               <Image
-                source={require('../../assets/icons/paybill1.png')}
-                style={[
-                  styles.icon,
-                  { tintColor: focused ? '#2872A1' : '#fff' },
-                ]}
+                source={require('../../assets/icons/settings.png')}
+                style={styles.menuIcon}
               />
-              <Text style={[
-                styles.label,
-                { color: focused ? '#2872A1' : '#fff' }
-              ]}>
-                Pay Bills
+              <Text style={styles.menuText}>Settings</Text>
+            </TouchableOpacity>
+
+            {/* LOGOUT */}
+            <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
+              <Image
+                source={require('../../assets/icons/logout.png')}
+                style={[styles.menuIcon, { tintColor: 'red' }]}
+              />
+              <Text style={[styles.menuText, { color: 'red' }]}>
+                Logout
               </Text>
-            </View>
-          ),
-        }}
-      />
+            </TouchableOpacity>
 
-<Tabs.Screen
-  name="notifications"
-  options={{
-    title: 'Notifications',
-    tabBarIcon: ({ focused }) => (
-      <View style={[styles.tabItemBox, focused && styles.activeBox]}>
-        <Image
-          source={require('../../assets/icons/notification2.png')}
-          style={[
-            styles.icon,
-            { tintColor: focused ? '#2872A1' : '#fff' },
-          ]}
-        />
-        <Text style={[
-          styles.label,
-          { color: focused ? '#2872A1' : '#fff' }
-        ]}>
-          Notifications
-        </Text>
+          </View>
+        )}
+
       </View>
-    ),
-  }}
-/>
-
-<Tabs.Screen
-  name="history"
-  options={{
-    title: 'History',
-    tabBarIcon: ({ focused }) => (
-      <View style={[styles.tabItemBox, focused && styles.activeBox]}>
-        <Image
-          source={require('../../assets/icons/history2.png')}
-          style={[
-            styles.icon,
-            { tintColor: focused ? '#2872A1' : '#fff' },
-          ]}
-        />
-        <Text style={[
-          styles.label,
-          { color: focused ? '#2872A1' : '#fff' }
-        ]}>
-          History
-        </Text>
-      </View>
-    ),
-  }}
-/>
-
-    </Tabs>
+    </TouchableWithoutFeedback>
   );
 }
-
 const styles = StyleSheet.create({
   /* HEADER (FIXED STABILITY) */
   header: {
@@ -219,6 +307,39 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
 
+  dropdown: {
+    position: 'absolute',
+    top: 90,
+    right: 15,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    width: 180,
+    elevation: 12,
+    zIndex: 999,
+    overflow: 'hidden',
+  },
+  
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#eee',
+  },
+  
+  menuIcon: {
+    width: 18,
+    height: 18,
+    marginRight: 10,
+    resizeMode: 'contain',
+  },
+  
+  menuText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
   /* TAB BAR */
   tabBar: 
   { position: 'absolute', 
