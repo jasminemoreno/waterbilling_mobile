@@ -1,17 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   FlatList,
   StyleSheet,
-  Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import PayBillModal from '../../components/PayBillModal';
+
+import { useFocusEffect } from '@react-navigation/native';
+
+import BillCard from '../../components/BillCard';
 import api from '../../config/api';
 
-/* ================= TYPES ================= */
 type Customer = {
   customer_name?: string;
   meter_no?: string;
@@ -30,13 +30,8 @@ type Bill = {
 export default function MyBills() {
   const [bills, setBills] = useState<Bill[]>([]);
   const [search, setSearch] = useState('');
-  const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
-  const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    loadBills();
-  }, []);
-
+  // ================= FETCH BILLS =================
   const loadBills = async () => {
     try {
       const token = await AsyncStorage.getItem('customerToken');
@@ -47,13 +42,31 @@ export default function MyBills() {
         },
       });
 
-      setBills(res.data as Bill[]);
+      setBills(res.data || []);
     } catch (err) {
       console.log('Error loading bills:', err);
     }
   };
 
-  /* ================= SAFE FILTER ================= */
+  // ================= FIRST LOAD =================
+  useEffect(() => {
+    loadBills();
+  }, []);
+
+  // ================= FOCUS + POLLING =================
+  useFocusEffect(
+    useCallback(() => {
+      loadBills(); // refresh immediately when screen opens
+
+      const interval = setInterval(() => {
+        loadBills(); // auto refresh every 10s
+      }, 10000);
+
+      return () => clearInterval(interval);
+    }, [])
+  );
+
+  // ================= SEARCH FILTER =================
   const filtered = bills.filter((b) => {
     const text =
       `${b.id} ${b.status} ${b.customer?.customer_name ?? ''}`.toLowerCase();
@@ -61,6 +74,7 @@ export default function MyBills() {
     return text.includes(search.toLowerCase());
   });
 
+  // ================= UI =================
   return (
     <View style={styles.container}>
 
@@ -75,74 +89,28 @@ export default function MyBills() {
       {/* LIST */}
       <FlatList
         data={filtered}
-        keyExtractor={(item: Bill) => item.id.toString()}
-        renderItem={({ item }: { item: Bill }) => (
-          <View style={styles.card}>
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <BillCard
+            item={{
+              id: item.id,
+              meter_no: item.customer?.meter_no ?? '',
+              consumption: item.consumption ?? 0,
+              total: Number(item.total ?? 0),
 
-            <Text style={styles.title}>Bill #{item.id}</Text>
+              billing_date: item.billing_date ?? undefined,
+              due_date: item.due_date ?? undefined,
 
-            <Text style={styles.text}>
-              Customer: {item.customer?.customer_name ?? 'N/A'}
-            </Text>
-
-            <Text style={styles.text}>
-              Meter No: {item.customer?.meter_no ?? 'N/A'}
-            </Text>
-
-            <Text style={styles.text}>
-              Consumption: {item.consumption} m³
-            </Text>
-
-            <Text style={styles.text}>
-              Total: ₱{Number(item.total ?? 0).toFixed(2)}
-            </Text>
-
-            <Text style={styles.text}>
-              Billing Date: {item.billing_date?.split('T')?.[0] ?? 'N/A'}
-            </Text>
-
-            <Text style={styles.text}>
-              Due Date: {item.due_date?.split('T')?.[0] ?? 'N/A'}
-            </Text>
-
-            <Text style={styles.status}>
-              Status: {item.status}
-            </Text>
-
-            {/* PAY BUTTON */}
-            <TouchableOpacity
-              style={styles.payBtn}
-              onPress={() => {
-                setSelectedBill(item);
-                setShowModal(true);
-              }}
-            >
-              <Text style={{ color: '#fff', fontWeight: 'bold' }}>
-                Pay Bill
-              </Text>
-            </TouchableOpacity>
-
-          </View>
+              status: item.status,
+            }}
+          />
         )}
       />
-
-      {/* MODAL */}
-      {showModal && (
-        <PayBillModal
-          bill={selectedBill}
-          onClose={() => setShowModal(false)}
-          onSuccess={() => {
-            setShowModal(false);
-            loadBills();
-          }}
-        />
-      )}
-
     </View>
   );
 }
 
-/* ================= STYLES ================= */
+// ================= STYLES =================
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -155,44 +123,5 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     marginBottom: 10,
-  },
-
-  card: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 14,
-    marginBottom: 12,
-
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-
-  title: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2872A1',
-    marginBottom: 6,
-  },
-
-  text: {
-    fontSize: 13,
-    marginBottom: 2,
-    color: '#333',
-  },
-
-  status: {
-    marginTop: 6,
-    fontWeight: 'bold',
-    color: '#555',
-  },
-
-  payBtn: {
-    marginTop: 10,
-    backgroundColor: '#2872A1',
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
   },
 });

@@ -9,8 +9,20 @@ export default function DashboardCards({ currentBill, lastPayment }: any) {
         <View style={[styles.topBar, { backgroundColor: '#081566' }]} />
 
         <Text style={styles.title}>Current Bill</Text>
-        <Text style={styles.value}>₱ {currentBill?.amount ?? '0.00'}</Text>
-        <Text style={styles.sub}>Due: {currentBill?.due_date ?? '-'}</Text>
+
+        <Text style={styles.value}>
+          ₱ {currentBill?.total ?? '0.00'}
+        </Text>
+
+        <Text style={styles.sub}>
+          Due: {currentBill?.due_date
+            ? new Date(currentBill.due_date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })
+            : '-'}
+        </Text>
       </View>
 
       {/* LAST PAYMENT */}
@@ -18,9 +30,19 @@ export default function DashboardCards({ currentBill, lastPayment }: any) {
         <View style={[styles.topBar, { backgroundColor: '#075B93' }]} />
 
         <Text style={styles.title}>Last Payment</Text>
-        <Text style={styles.value}>₱ {lastPayment?.amount ?? '0.00'}</Text>
+
+        <Text style={styles.value}>
+          ₱ {lastPayment?.amount ?? '0.00'}
+        </Text>
+
         <Text style={styles.sub}>
-          {lastPayment?.created_at ?? 'No payment yet'}
+          {lastPayment?.created_at
+            ? new Date(lastPayment.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })
+            : 'No payment yet'}
         </Text>
       </View>
 
@@ -29,15 +51,18 @@ export default function DashboardCards({ currentBill, lastPayment }: any) {
         <View style={[styles.topBar, { backgroundColor: '#B2965F' }]} />
 
         <Text style={styles.title}>Water Usage</Text>
+
         <Text style={styles.value}>
-          {currentBill?.usage ?? '0'} m³
+          {currentBill?.consumption ?? '0'} m³
         </Text>
+
         <Text style={styles.sub}>This Month</Text>
       </View>
 
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
@@ -51,7 +76,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 12,
     overflow: 'hidden',
-
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 6,
@@ -65,7 +89,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
 
-  /* ONLY BACKGROUND COLORS (like Vue cards) */
   currentBill: {
     backgroundColor: '#9BBCD4',
   },
@@ -78,18 +101,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFEDCD',
   },
 
-  /* KEEP YOUR ORIGINAL TEXT STYLES */
   title: {
     fontSize: 14,
     color: '#666',
   },
 
   value: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 17,
+    fontWeight: '700',
     marginTop: 5,
+    color: '#2c3e50',
   },
-
   sub: {
     fontSize: 12,
     marginTop: 5,
