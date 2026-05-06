@@ -1,14 +1,21 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Bill } from "../components/types/Bill";
 
-type Props = {
-  item: Bill;
-  showPayButton?: boolean;
-  onPay?: (item: Bill) => void;
+// ================= TYPES =================
+type Field = {
+  label: string;
+  key: string;
+  type?: "money" | "date" | "text";
 };
 
-// ✅ format date to words
+type Props = {
+  item: any;
+  fields: Field[];
+  showPayButton?: boolean;
+  onPay?: (item: any) => void;
+};
+
+// ================= FORMATTERS =================
 const formatDate = (date?: string) => {
   if (!date) return "-";
 
@@ -22,58 +29,61 @@ const formatDate = (date?: string) => {
   });
 };
 
-// ✅ safe money format
 const formatMoney = (value: any) => {
   if (value === null || value === undefined) return "0.00";
   return Number(value).toFixed(2);
 };
 
+// ================= COMPONENT =================
 export default function BillCard({
   item,
+  fields,
   showPayButton = false,
   onPay,
 }: Props) {
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>
-        Bill ID: {item?.id ?? "-"}
-      </Text>
+      
+      {/* ================= DYNAMIC FIELDS ================= */}
+      {fields.map((field) => {
+        let value = item?.[field.key];
 
-      <Text style={styles.text}>
-        Meter No: {item?.meter_no ?? "-"}
-      </Text>
+        // FORMAT MONEY
+        if (field.type === "money") {
+          value = `₱${formatMoney(value)}`;
+        }
 
-      <Text style={styles.text}>
-        Consumption: {item?.consumption ?? 0} m³
-      </Text>
+        // FORMAT DATE
+        if (field.type === "date") {
+          value = formatDate(value);
+        }
 
-      <Text style={styles.text}>
-        Total: ₱{formatMoney(item?.total)}
-      </Text>
+        return (
+          <Text key={field.key} style={styles.text}>
+            {field.label}: {value ?? "-"}
+          </Text>
+        );
+      })}
 
-      <Text style={styles.text}>
-        Billing Date: {formatDate(item?.billing_date)}
-      </Text>
+      {/* ================= STATUS ================= */}
+      {item?.status && (
+        <Text
+          style={[
+            styles.status,
+            item.status === "Pending"
+              ? styles.pending
+              : item.status === "Paid"
+              ? styles.paid
+              : item.status === "Verified"
+              ? styles.verified
+              : styles.unpaid,
+          ]}
+        >
+          Status: {item.status}
+        </Text>
+      )}
 
-      <Text style={styles.text}>
-        Due Date: {formatDate(item?.due_date)}
-      </Text>
-
-      <Text
-        style={[
-          styles.status,
-          item?.status === "Pending"
-            ? styles.pending
-            : item?.status === "Paid"
-            ? styles.paid
-            : item?.status === "Verified"
-            ? styles.verified
-            : styles.unpaid,
-        ]}
-      >
-        Status: {item?.status ?? "-"}
-      </Text>
-
+      {/* ================= PAY BUTTON ================= */}
       {showPayButton &&
         item?.status !== "Paid" &&
         item?.status !== "Verified" && (
@@ -88,6 +98,7 @@ export default function BillCard({
   );
 }
 
+// ================= STYLES =================
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
@@ -97,15 +108,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 
-  title: {
-    fontWeight: "700",
-    marginBottom: 5,
-    fontSize: 14,
-  },
-
   text: {
     fontSize: 13,
-    marginBottom: 3,
+    marginBottom: 4,
     color: "#333",
   },
 
@@ -133,7 +138,7 @@ const styles = StyleSheet.create({
 
   payBtn: {
     backgroundColor: "#2872A1",
-    padding: 8,
+    padding: 10,
     borderRadius: 8,
     alignItems: "center",
   },

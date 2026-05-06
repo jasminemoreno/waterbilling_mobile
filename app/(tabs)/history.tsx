@@ -3,28 +3,40 @@ import {
   FlatList,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 
+import BillCard from "../../components/BillCard";
 import api from "../../config/api";
 
-import BillCard from "../../components/BillCard";
-
+// ================= TYPES =================
 type Payment = {
   bill_id: number;
-  month: string;
   amount: number;
-  date_paid: string;
   status: string;
+  created_at: string;
+  bill?: {
+    billing_date?: string;
+  };
 };
 
+// ================= FIELDS =================
+const fields = [
+  { label: "Bill ID", key: "bill_id" },
+  { label: "Month", key: "month" },
+  { label: "Amount", key: "amount", type: "money" as const },
+  { label: "Date Paid", key: "created_at", type: "date" as const }, // ✅ FIX HERE
+];
+
+// ================= COMPONENT =================
 export default function PaymentHistory() {
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [search, setSearch] = useState("");
 
-  // ================= FETCH =================
   const fetchPayments = async () => {
     try {
       const token = await AsyncStorage.getItem("customerToken");
@@ -45,67 +57,85 @@ export default function PaymentHistory() {
     }
   };
 
-  // ================= FIRST LOAD =================
   useEffect(() => {
     fetchPayments();
   }, []);
 
-  // ================= POLLING =================
   useFocusEffect(
     useCallback(() => {
-      fetchPayments(); // refresh immediately
+      fetchPayments();
 
       const interval = setInterval(() => {
-        fetchPayments(); // auto refresh every 10 sec
+        fetchPayments();
       }, 10000);
 
       return () => clearInterval(interval);
     }, [])
   );
 
-  // ================= RENDER ITEM =================
+  const filteredPayments = payments.filter((p) => {
+    const text = `
+      ${p.bill_id}
+      ${p.amount}
+      ${p.status}
+      ${p.created_at}
+    `.toLowerCase();
+
+    return text.includes(search.toLowerCase());
+  });
+
   const renderItem = ({ item }: { item: Payment }) => {
-    const billLike = {
-      id: item.bill_id,
-      month: item.month,
-      total: item.amount,
-      status: item.status,
-      date_paid: item.date_paid,
-    };
+    const monthValue =
+      item.bill?.billing_date
+        ? new Date(item.bill.billing_date).toLocaleString("en-US", {
+            month: "long",
+            year: "numeric",
+          })
+        : "-";
 
     return (
       <BillCard
-        item={billLike as any}
+        item={{
+          bill_id: item.bill_id,
+          month: monthValue,
+          amount: item.amount,
+          created_at: item.created_at, // ✅ IMPORTANT FIX
+          status: item.status,
+        }}
+        fields={fields}
         showPayButton={false}
       />
     );
   };
 
-  // ================= UI =================
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Payment History</Text>
 
+      <TextInput
+        placeholder="Search history..."
+        value={search}
+        onChangeText={setSearch}
+        style={styles.search}
+      />
+
       <FlatList
-        data={payments}
+        data={filteredPayments}
         keyExtractor={(item, index) =>
           item.bill_id?.toString() || index.toString()
         }
         renderItem={renderItem}
-        contentContainerStyle={{
-          paddingBottom: 120,
-        }}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120 }}
         ListEmptyComponent={
-          <Text style={styles.empty}>
-            No payment history found.
-          </Text>
+          <Text style={styles.empty}>No payment history found.</Text>
         }
       />
     </View>
   );
 }
 
+// ================= STYLES (UNCHANGED) =================
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -119,6 +149,13 @@ const styles = StyleSheet.create({
     color: "#2872A1",
     textAlign: "center",
     marginBottom: 15,
+  },
+
+  search: {
+    backgroundColor: "#fff",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
   },
 
   empty: {

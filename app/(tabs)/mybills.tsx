@@ -1,42 +1,34 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useCallback, useEffect, useState } from 'react';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useCallback, useEffect, useState } from "react";
 import {
   FlatList,
   StyleSheet,
+  Text,
   TextInput,
   View,
-} from 'react-native';
+} from "react-native";
 
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "@react-navigation/native";
 
-import BillCard from '../../components/BillCard';
-import api from '../../config/api';
+import BillCard from "../../components/BillCard";
+import api from "../../config/api";
 
-type Customer = {
-  customer_name?: string;
-  meter_no?: string;
-};
+// ================= TYPE (USE IMPORTED ONE ONLY) =================
+// ❗ IMPORTANT: REMOVE any local Bill type in this file
 
-type Bill = {
-  id: number;
-  status: string;
-  consumption: number;
-  total: number | string;
-  billing_date?: string | null;
-  due_date?: string | null;
-  customer?: Customer;
-};
+import { Bill } from "../../components/types/Bill";
 
+// ================= COMPONENT =================
 export default function MyBills() {
   const [bills, setBills] = useState<Bill[]>([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
-  // ================= FETCH BILLS =================
+  // ================= FETCH =================
   const loadBills = async () => {
     try {
-      const token = await AsyncStorage.getItem('customerToken');
+      const token = await AsyncStorage.getItem("customerToken");
 
-      const res = await api.get('/bills', {
+      const res = await api.get("/customer/mybills", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -44,7 +36,7 @@ export default function MyBills() {
 
       setBills(res.data || []);
     } catch (err) {
-      console.log('Error loading bills:', err);
+      console.log("Error loading bills:", err);
     }
   };
 
@@ -53,32 +45,57 @@ export default function MyBills() {
     loadBills();
   }, []);
 
-  // ================= FOCUS + POLLING =================
+  // ================= AUTO REFRESH =================
   useFocusEffect(
     useCallback(() => {
-      loadBills(); // refresh immediately when screen opens
+      loadBills();
 
       const interval = setInterval(() => {
-        loadBills(); // auto refresh every 10s
+        loadBills();
       }, 10000);
 
       return () => clearInterval(interval);
     }, [])
   );
 
-  // ================= SEARCH FILTER =================
+  // ================= SEARCH =================
   const filtered = bills.filter((b) => {
     const text =
-      `${b.id} ${b.status} ${b.customer?.customer_name ?? ''}`.toLowerCase();
+      `${b.id} ${b.status} ${b.meter_no ?? ""}`.toLowerCase();
 
     return text.includes(search.toLowerCase());
   });
 
-  // ================= UI =================
+  // ================= RENDER ITEM =================
+  const renderItem = ({ item }: { item: Bill }) => {
+    return (
+      <BillCard
+        item={{
+          id: item.id,
+          meter_no: item.meter_no ?? "-", // ✅ FIXED
+          consumption: item.consumption ?? 0,
+          total: item.total ?? 0,
+          billing_date: item.billing_date ?? undefined,
+          due_date: item.due_date ?? undefined,
+          status: item.status,
+        }}
+        fields={[
+          { label: "Bill ID", key: "id" },
+          { label: "Meter No", key: "meter_no" },
+          { label: "Consumption", key: "consumption" },
+          { label: "Total", key: "total", type: "money" },
+          { label: "Billing Date", key: "billing_date", type: "date" },
+          { label: "Due Date", key: "due_date", type: "date" },
+        ]}
+      />
+    );
+  };
+
+  // ================= UI (UNCHANGED STYLE) =================
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>My Bills</Text>
 
-      {/* SEARCH */}
       <TextInput
         placeholder="Search bills..."
         value={search}
@@ -86,40 +103,35 @@ export default function MyBills() {
         style={styles.search}
       />
 
-      {/* LIST */}
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <BillCard
-            item={{
-              id: item.id,
-              meter_no: item.customer?.meter_no ?? '',
-              consumption: item.consumption ?? 0,
-              total: Number(item.total ?? 0),
-
-              billing_date: item.billing_date ?? undefined,
-              due_date: item.due_date ?? undefined,
-
-              status: item.status,
-            }}
-          />
-        )}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120 }}
       />
     </View>
   );
 }
 
-// ================= STYLES =================
+// ================= STYLES (UNCHANGED) =================
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f6f8',
+    backgroundColor: "#CBDDE9",
     padding: 15,
   },
 
+  title: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#2872A1",
+    textAlign: "center",
+    marginBottom: 15,
+  },
+
   search: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 10,
     borderRadius: 10,
     marginBottom: 10,
