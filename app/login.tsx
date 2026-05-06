@@ -10,7 +10,6 @@ import {
   View,
 } from "react-native";
 
-import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { isAxiosError } from "axios";
 import api from "../config/api";
@@ -20,8 +19,6 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -41,6 +38,7 @@ export default function Login() {
 
       router.replace("/(tabs)");
     } catch (error) {
+      // ✅ SAFE AXIOS ERROR HANDLING (fixes TS error 18046)
       if (isAxiosError(error)) {
         console.log("LOGIN ERROR:", error.response?.data || error.message);
 
@@ -71,9 +69,7 @@ export default function Login() {
         />
 
         {/* TITLE */}
-        <Text style={styles.title}>
-          Barangay Alipao Water Billing System
-        </Text>
+        <Text style={styles.title}>Barangay Alipao Water Billing System</Text>
 
         {/* CARD */}
         <View style={styles.card}>
@@ -94,35 +90,20 @@ export default function Login() {
           />
 
           {/* PASSWORD */}
-          <View style={styles.passwordContainer}>
-            <TextInput
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              style={styles.passwordInput}
-              secureTextEntry={!showPassword}
-              placeholderTextColor="#888"
-            />
-
-            <TouchableOpacity
-              onPress={() => setShowPassword(!showPassword)}
-              style={styles.eyeBtn}
-            >
-              <Ionicons
-                name={showPassword ? "eye-outline" : "eye-off-outline"}
-                size={22}
-                color="#000"
-              />
-            </TouchableOpacity>
-          </View>
+          <TextInput
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            style={styles.input}
+            secureTextEntry
+            placeholderTextColor="#888"
+          />
 
           {/* FORGOT PASSWORD */}
-          <TouchableOpacity
-            style={styles.helper}
-            onPress={() => router.push("/forgot-password")}
-          >
+          <TouchableOpacity style={styles.helper}>
             <Text style={styles.helperText}>Forgot password?</Text>
           </TouchableOpacity>
+
           {/* BUTTON */}
           <TouchableOpacity
             style={styles.button}
@@ -176,6 +157,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(203, 221, 233, 0.75)",
     padding: 22,
     borderRadius: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
     elevation: 6,
   },
 
@@ -195,26 +179,6 @@ const styles = StyleSheet.create({
     borderColor: "#d0d7de",
     marginBottom: 12,
     backgroundColor: "#fff",
-  },
-
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#d0d7de",
-    borderRadius: 10,
-    backgroundColor: "#fff",
-    marginBottom: 12,
-  },
-
-  passwordInput: {
-    flex: 1,
-    padding: 12,
-  },
-
-  eyeBtn: {
-    paddingHorizontal: 12,
   },
 
   helper: {
