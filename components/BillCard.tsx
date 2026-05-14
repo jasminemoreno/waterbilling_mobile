@@ -13,6 +13,7 @@ type Props = {
   fields: Field[];
   showPayButton?: boolean;
   onPay?: (item: any) => void;
+  onDownload?: (item: any) => void;
 };
 
 // ================= FORMATTERS =================
@@ -40,20 +41,19 @@ export default function BillCard({
   fields,
   showPayButton = false,
   onPay,
+  onDownload,
 }: Props) {
   return (
     <View style={styles.card}>
       
-      {/* ================= DYNAMIC FIELDS ================= */}
+      {/* ================= FIELDS ================= */}
       {fields.map((field) => {
         let value = item?.[field.key];
 
-        // FORMAT MONEY
         if (field.type === "money") {
           value = `₱${formatMoney(value)}`;
         }
 
-        // FORMAT DATE
         if (field.type === "date") {
           value = formatDate(value);
         }
@@ -94,11 +94,21 @@ export default function BillCard({
             <Text style={styles.payBtnText}>Pay</Text>
           </TouchableOpacity>
         )}
+
+      {/* ================= DOWNLOAD BUTTON ================= */}
+      {onDownload && (
+        <TouchableOpacity
+          style={[styles.payBtn, styles.downloadBtn]}
+          onPress={() => onDownload(item)}
+        >
+          <Text style={styles.payBtnText}>Download Receipt</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
 
-// ================= STYLES =================
+// ================= STYLES (UNCHANGED) =================
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
@@ -120,21 +130,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  unpaid: {
-    color: "#d9534f",
-  },
-
-  pending: {
-    color: "#f0ad4e",
-  },
-
-  paid: {
-    color: "#28a745",
-  },
-
-  verified: {
-    color: "#2872A1",
-  },
+  unpaid: { color: "#d9534f" },
+  pending: { color: "#f0ad4e" },
+  paid: { color: "#28a745" },
+  verified: { color: "#2872A1" },
 
   payBtn: {
     backgroundColor: "#2872A1",
@@ -146,5 +145,10 @@ const styles = StyleSheet.create({
   payBtnText: {
     color: "#fff",
     fontWeight: "700",
+  },
+
+  downloadBtn: {
+    backgroundColor: "#28a745",
+    marginTop: 10,
   },
 });

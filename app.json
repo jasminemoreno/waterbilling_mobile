@@ -8,28 +8,35 @@
     "scheme": "waterbillingmobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+
     "ios": {
       "supportsTablet": true
     },
+
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#2872A1"
       },
-      "android": {
-        "edgeToEdgeEnabled": true
-      },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.waterbillingmobile"
+      "package": "com.anonymous.waterbillingmobile",
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
+
     "web": {
       "output": "static"
     },
+
     "plugins": [
       "expo-router",
       "expo-web-browser",
       "@react-native-community/datetimepicker"
+      
     ],
+
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

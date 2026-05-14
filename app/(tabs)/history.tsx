@@ -13,8 +13,13 @@ import { useFocusEffect } from "@react-navigation/native";
 import BillCard from "../../components/BillCard";
 import api from "../../config/api";
 
-// ================= TYPES =================
+// ✅ IMPORTANT FIX FOR SDK 54
+import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
+
+// ================= TYPE =================
 type Payment = {
+  id: number;
   bill_id: number;
   amount: number;
   status: string;
@@ -24,28 +29,15 @@ type Payment = {
   };
 };
 
-// ================= FIELDS =================
-const fields = [
-  { label: "Bill ID", key: "bill_id" },
-  { label: "Month", key: "month" },
-  { label: "Amount", key: "amount", type: "money" as const },
-  { label: "Date Paid", key: "created_at", type: "date" as const }, // ✅ FIX HERE
-];
-
 // ================= COMPONENT =================
 export default function PaymentHistory() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [search, setSearch] = useState("");
 
+  // ================= FETCH =================
   const fetchPayments = async () => {
     try {
-      const token = await AsyncStorage.getItem("customerToken");
-
-      const res = await api.get("/customer/history", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await api.get("/customer/history");
 
       const filtered = (res.data.payments || []).filter(
         (p: any) => p.status === "Verified"
@@ -53,7 +45,7 @@ export default function PaymentHistory() {
 
       setPayments(filtered);
     } catch (err) {
-      console.log("Error fetching payment history:", err);
+      console.log("Fetch error:", err);
     }
   };
 
@@ -64,15 +56,38 @@ export default function PaymentHistory() {
   useFocusEffect(
     useCallback(() => {
       fetchPayments();
-
-      const interval = setInterval(() => {
-        fetchPayments();
-      }, 10000);
-
-      return () => clearInterval(interval);
     }, [])
   );
 
+  // ================= DOWNLOAD RECEIPT (FIXED) =================
+  const downloadReceipt = async (paymentId: number) => {
+    try {
+      const token = await AsyncStorage.getItem("customerToken");
+
+      const url = `${api.defaults.baseURL}/customer/payment/${paymentId}/receipt`;
+
+      const fileUri =
+        FileSystem.documentDirectory + `receipt-${paymentId}.pdf`;
+
+      const downloadResult = await FileSystem.downloadAsync(url, fileUri, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/pdf",
+        },
+      });
+
+      if (downloadResult.status !== 200) {
+        console.log("Download failed:", downloadResult.status);
+        return;
+      }
+
+      await Sharing.shareAsync(downloadResult.uri);
+    } catch (err) {
+      console.log("Download error:", err);
+    }
+  };
+
+  // ================= FILTER =================
   const filteredPayments = payments.filter((p) => {
     const text = `
       ${p.bill_id}
@@ -84,6 +99,7 @@ export default function PaymentHistory() {
     return text.includes(search.toLowerCase());
   });
 
+  // ================= RENDER =================
   const renderItem = ({ item }: { item: Payment }) => {
     const monthValue =
       item.bill?.billing_date
@@ -96,14 +112,21 @@ export default function PaymentHistory() {
     return (
       <BillCard
         item={{
+          id: item.id,
           bill_id: item.bill_id,
           month: monthValue,
           amount: item.amount,
-          created_at: item.created_at, // ✅ IMPORTANT FIX
+          created_at: item.created_at,
           status: item.status,
         }}
-        fields={fields}
+        fields={[
+          { label: "Bill ID", key: "bill_id" },
+          { label: "Month", key: "month" },
+          { label: "Amount", key: "amount", type: "money" },
+          { label: "Date Paid", key: "created_at", type: "date" },
+        ]}
         showPayButton={false}
+        onDownload={() => downloadReceipt(item.id)}
       />
     );
   };
@@ -121,11 +144,8 @@ export default function PaymentHistory() {
 
       <FlatList
         data={filteredPayments}
-        keyExtractor={(item, index) =>
-          item.bill_id?.toString() || index.toString()
-        }
+        keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
-        showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
         ListEmptyComponent={
           <Text style={styles.empty}>No payment history found.</Text>
